@@ -38,9 +38,7 @@ export default {
   methods: {
     ...mapActions(["removeArxmlFile", "setArxmlFiles"]),
     refresh(){
-      this.setArxmlFiles({ data: null });
-      this.removeArxmlFile({ data: null, type: 'compare1' });
-      this.removeArxmlFile({ data: null, type: 'compare2' });
+      this.$winRe();
     }
   },
 }

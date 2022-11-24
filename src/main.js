@@ -6,6 +6,11 @@ import VueToastify from "vue-toastify";
 
 const {ipcRenderer}   = require('electron');
 const FindInPage      = require('electron-find').FindInPage;
+const {getCurrentWindow} = require('electron').remote;
+
+const reload = ()=>{
+  getCurrentWindow().reload()
+}
 
 
 /**
@@ -21,6 +26,9 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
 Vue.config.productionTip = false
 Vue.prototype.$func = func;
+Vue.prototype.$winRe = () => {
+  reload();
+}
 
 Vue.use(VueToastify,{
   position:"top-right"

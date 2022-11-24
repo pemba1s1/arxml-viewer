@@ -10,21 +10,6 @@
                     <p class="file-name" tabindex="0">File Name: {{ file1 }}</p>
                     <input type="file" id="file-upload" @change="onUpload({ type: 'compare1' })" ref="file1" style="display: none;" />
                     <button class="btn-upload-compare" @click="clickUpload({type : 'compare1'})">Select another file</button>
-                    <!-- <div style="height: 90vh;border:none;" class="file-viewer" v-for="(arxmlFile,index) in compareFile1" :key="index">
-                        <div class="file-title">
-                            <span class="file-name" tabindex="0">File Name: {{ arxmlFile.filename }}</span>
-                            <span class="icon" @click="removeArxmlFile({ file_index: index, type: 'compare1' })">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="red" height="18px" width="18px" viewBox="0 0 448 512">
-                                    <path
-                                        d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z" />
-                                </svg>
-                            </span>
-                        </div>
-                        <ul>
-                            <ArxmlNode :fileindex="index" :node="arxmlFile.data['AUTOSAR']" nodeShortName="" nodeTag="AUTOSAR"
-                                :ref="'AUTOSAR' + index"></ArxmlNode>
-                        </ul>
-                    </div> -->
                 </div>
             </div>
             <div style="width:50%;height:98%;position: relative;border:1px dotted">
@@ -55,18 +40,10 @@
             </div>
         </div>
         <div v-else style="width: 100%;">
-            <!-- {{compareFile1}} -->
-            <!-- {{st}} -->
             <div style="width: 100%;" v-for="(file,index) in compareFile1" :key="index">
                 <CompareNode 
-                    :fileindex1="1" 
                     :node1="compareFile1[index].data" 
-                    nodeTag1="AUTOSAR" 
-                    nodeShortName1=""
                     :ref="'AUTOSAR'" 
-                    :fileindex2="1" 
-                    nodeShortName2=""
-                    nodeTag2="AUTOSAR" 
                     :node2="compareFile2[index].data"
                     />
             </div>
@@ -94,7 +71,6 @@ export default {
         return {
             file1:"",
             file2:"",
-            st:[],
             reader: new FileReader(),
         }
     },
@@ -134,8 +110,7 @@ export default {
                     };
                     let arpackageJSON = parser.parse(e.target.result, parserOptions);
                     streamJSON['AUTOSAR']['AR-PACKAGES'] = arpackageJSON['AUTOSAR']['AR-PACKAGES'];
-                    // this.type = type
-                    const asd = async (node) => {
+                    const convertToJson = async (node) => {
                         let comNode = []
                         let att = [];
                         if ('string' !== typeof (node)) {
@@ -154,7 +129,7 @@ export default {
                                         
                                         // create xpath for child node
                                         xpath = `${key}[${i}]`;
-                                        comNode.push({ "tag": key, "shortName": shortname, "xpath": xpath, selected: false, key: await asd(node_value[i]) });
+                                        comNode.push({ "tag": key, "shortName": shortname, "xpath": xpath, selected: false, key: await convertToJson(node_value[i]) });
                                     }
                                 }
                                 else {
@@ -178,7 +153,7 @@ export default {
                                         xpath = `${key}`;
                                         
                                         
-                                        comNode.push({ "tag": key, "text":text, "shortName": shortname, "xpath": xpath, selected: false,att:att, key: await asd(node_value) });
+                                    comNode.push({ "tag": key, "text": text, "shortName": shortname, "xpath": xpath, selected: false, att: att, key: await convertToJson(node_value) });
                                         
                                     }
                                     let sorted = sortJsonArray(comNode, 'shortName')
@@ -187,11 +162,9 @@ export default {
                             }
                             return comNode
                         };
-                    let d = await asd(streamJSON)
+                    let d = await convertToJson(streamJSON)
                     let tempData = { 'asd': arxml.type, 'filename': arxml.name, 'data': d };
                     this.addArxmlFile({data: tempData,type: type})
-                    // if (type == 'compare1') this.addCompareFile1({ data: tempData })
-                    // if (type == 'compare2') this.addCompareFile2({ data: tempData })
                     this.$vToastify.success("File Imported Successfully");
                     }
                 this.reader.readAsText(arxml)

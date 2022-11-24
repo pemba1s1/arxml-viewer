@@ -12,17 +12,13 @@ import Noder from '../components/node.vue'
 
 export default {
     name: "CompareNode",
-    props: ['change', 'fileindex1', 'node1', 'nodeTag1', 'nodeShortName1', 'fileindex2', 'node2', 'nodeTag2', 'nodeShortName2'],
+    props: ['node1', 'node2'],
     components:{
         Noder
     },
     
     data: function () {
         return {
-            nodeAttributes1: [],
-            nodeChildren1: [],
-            nodeAttributes2: [],
-            nodeChildren2: [],
             comNode1: '',
             comNode2:'',
         };

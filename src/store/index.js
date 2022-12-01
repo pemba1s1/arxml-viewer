@@ -1,8 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
-const { ipcRenderer }  = require('electron');
-
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -10,6 +8,8 @@ export default new Vuex.Store({
     arxmlFiles :[],
     compareFile1 :[],
     compareFile2 :[],
+    comparedFile1: [],
+    comparedFile2: [],
   },
 
   getters: {
@@ -22,6 +22,8 @@ export default new Vuex.Store({
     compareFile2: state => state.compareFile2,
     isFile1: state => state.compareFile1.length > 0 ? true : false,
     isFile2: state => state.compareFile2.length > 0 ? true : false,
+    comparedFile1: state => state.comparedFile1,
+    comparedFile2: state => state.comparedFile2
   },
   
   actions: {
@@ -44,6 +46,10 @@ export default new Vuex.Store({
       }
       commit('removeArxmlFile', file_index)
     },
+    async addCompared({ commit },{data}){
+      commit('setComparedFile1',data.newNode1)
+      commit('setComparedFile2',data.newNode2)
+    }
   },
   
   mutations: {
@@ -53,5 +59,7 @@ export default new Vuex.Store({
     setCompareFile2: (state,arxmlFile) => state.compareFile2 = [arxmlFile],
     removeCompare1: (state,index) => state.compareFile1.splice(index,1),
     removeCompare2: (state,index) => state.compareFile2.splice(index,1),
+    setComparedFile1: (state,arxmlFile) => state.comparedFile1 = arxmlFile,
+    setComparedFile2: (state,arxmlFile) => state.comparedFile2 = arxmlFile,
   }
 })

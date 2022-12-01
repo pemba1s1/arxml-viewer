@@ -1,9 +1,5 @@
 <template>
-    <!-- <div v-if="comNode">
-
-        {{comNode}}
-    </div> -->
-    <Noder :comNode1="comNode1" :comNode2="comNode2"/>
+    <Noder :comNode1="comparedFile1" :comNode2="comparedFile2"/>
 </template>
 
 <script>
@@ -24,10 +20,10 @@ export default {
         };
     },
     computed: {
-        ...mapGetters(["allArxmlFiles"])
+        ...mapGetters(["comparedFile1","comparedFile2"])
     },
     methods: {
-        ...mapActions(["removeArxmlFile"]),
+        ...mapActions(["addCompared"]),
     },
     created: async function () {        
 
@@ -80,8 +76,8 @@ export default {
             return { newNode1, newNode2 };
         }
         const result = await compareNodes({node1:this.node1,node2:this.node2});
-        this.comNode1 = result.newNode1;
-        this.comNode2 = result.newNode2;
+        this.addCompared({data:result});
+        // this.comNode2 = result.newNode2;
     }
 
 }

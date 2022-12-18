@@ -1,7 +1,7 @@
 <template>
     <div>
         <div v-for="(node, index) in comNode1" :key="index" style="width: 100%;margin: 0;">
-            <div style="display:flex;width: 100%;justify-content: space-between;">
+            <div v-if="node" style="display:flex;width: 100%;justify-content: space-between;">
                 <li style="width:48%;padding-right: 5px;overflow-x: auto;"
                 class="atomic-element">
                 <!-- {{comNode1}} -->
@@ -50,14 +50,14 @@
                     </div>                
                 </li>
                 <div style="border-left:1px solid;border-right:1px solid;width:4%">
-                    <div style="display:flex;padding:3px;width:100%;gap: 2px;" v-if="node.change || comNode2[index].change">
-                        <div class="change-button" @click="swap(node, comNode2[index])">
+                    <div style="display:flex;padding:3px;width:100%;gap: 2px;" v-if="node.change || comNode2[index].change || node.dif">
+                        <div class="change-button" @click="swap(index, true)">
                             <svg xmlns="http://www.w3.org/2000/svg" height="16px" width="16px" viewBox="0 0 448 512">
                                 <path
                                     d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z" />
                             </svg>
                         </div>
-                        <div class="change-button" @click="swap(node, comNode2[index])">
+                        <div class="change-button" @click="swap(index, false)">
                             <svg xmlns="http://www.w3.org/2000/svg" height="16px" width="16px" viewBox="0 0 448 512">
                                 <path
                                     d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z" />
@@ -113,7 +113,7 @@
                                     :style="(node.change || comNode2[index].change) ? 'background:#8390f2;margin-bottom:3px' : (node.hasChanges || comNode2[index].hasChanges) ? 'background:yellow ' : (node.dif) && 'background:red'"
                                     >
                                     <th v-if="comNode2[index].text || !comNode2[index].shortName" >{{ comNode2[index].tag }}</th>
-                                    <th v-else  tabindex="0" ref="shortname">{{ comNode2[index].shortName }}</th>
+                                    <th :key="comNode2[index].shortName" v-else  tabindex="0" ref="shortname">{{ comNode2[index].shortName }}</th>
                                     <th v-if="comNode2[index].text" class="atomic-shortname" tabindex="0" ref="shortname">{{ comNode2[index].text}}</th>
                                 </div>
                             </tr>
@@ -161,8 +161,41 @@ export default{
             node1.selected = !node1.selected;
             node2.selected = !node2.selected;
         },
-        swap(node1,node2){
+        swap(index,mode){
+            console.log(this.comNode1.length)
+            if(mode){
+                if(this.comNode2[index].shortName || this.comNode2[index].tag){
+                    this.comNode1[index].shortName = this.comNode2[index].shortName;
+                    this.comNode1[index].selected = this.comNode2[index].selected;
+                    this.comNode1[index].tag = this.comNode2[index].tag;
+                    this.comNode1[index].key = this.comNode2[index].key;
+                    this.comNode1[index].text = this.comNode2[index].text;
+                    this.comNode1[index].change = false;
+                    this.comNode2[index].change = false;
+                    this.comNode2[index].dif = false;
+                    this.comNode1[index].dif = false;
+                }else{
+                    this.comNode1.splice(index,1);
+                    this.comNode2.splice(index,1);
+                }
+            }else{
+                if(this.comNode1[index].shortName || this.comNode1[index].tag){
+                    this.comNode2[index].shortName = this.comNode1[index].shortName;
+                    this.comNode2[index].selected = this.comNode1[index].selected;
+                    this.comNode2[index].tag = this.comNode1[index].tag;
+                    this.comNode2[index].key = this.comNode1[index].key;
+                    this.comNode2[index].text = this.comNode1[index].text;
+                    this.comNode1[index].change = false;
+                    this.comNode2[index].change = false;
+                    this.comNode2[index].dif = false;
+                    this.comNode1[index].dif = false;
+                }else{
+                    this.comNode1.splice(index,1);
+                    this.comNode2.splice(index,1);
+                }
+            }
             
+            this.$forceUpdate();
         }
     },
 }

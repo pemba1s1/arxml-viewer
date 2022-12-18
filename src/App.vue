@@ -48,6 +48,7 @@ export default {
 * {
     font-family: monospace;
     box-sizing: border-box;
+    font-size: 13px;
 }
 
 html, body{

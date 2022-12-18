@@ -8,8 +8,10 @@ module.exports = {
         builderOptions: {
           productName: "arxmlviewer",
           icon:"src/assets/icon.png",
-          artifactName: "${productName}_setup.${ext}"
-          
+          artifactName: "${productName}_setup.${ext}",
+          extraFiles: [
+            "./src/assets/**"
+          ]
       }
     }
   }

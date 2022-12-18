@@ -1,5 +1,5 @@
 <template>
-    <Noder :comNode1="comparedFile1" :comNode2="comparedFile2"/>
+    <Noder :comNode1="comparedFile1" :comNode2="comparedFile2" p="0"/>
 </template>
 
 <script>
@@ -87,36 +87,5 @@ export default {
 
 li{
     list-style: none;
-}
-.atomic-element>table {
-    word-break: keep-all;
-    white-space: nowrap;
-}
-
-.atomic-tag {
-    color: darkred;
-}
-
-.atomic-shortname {
-    margin-left: 10px;
-    font-size: 10pt;
-    color: darkolivegreen;
-}
-
-ul>li:not(.atomic-element)>table th {
-    font-size: 8pt;
-    font-weight: normal;
-    padding: 0px 10px 0px 0px;
-}
-
-ul>li:not(.atomic-element)>table th:first-child {
-    color: midnightblue;
-    font-weight: bold;
-}
-
-.icon {
-    height: 20px;
-    width: 20px;
-    cursor: pointer;
 }
 </style>

@@ -31,7 +31,7 @@
             </div>
             <ul>
                 <ArxmlNode :fileindex="index" :node="arxmlFile.data['AUTOSAR']" nodeShortName="" nodeTag="AUTOSAR"
-                    :ref="'AUTOSAR' + index"></ArxmlNode>
+                    :ref="'AUTOSAR' + index" autoopen=true></ArxmlNode>
             </ul>
         </div>
     </div>
@@ -41,6 +41,7 @@
 import ArxmlNode from './arxmlnode.vue';
 import {mapGetters, mapActions} from "vuex";
 import parser from "fast-xml-parser"
+import sortJsonArray from 'sort-json-array'
 
 export default {
     name: "DropZone",
@@ -77,9 +78,12 @@ export default {
                         }
                     };
                     let arpackageJSON = parser.parse(e.target.result, parserOptions);
+                    console.log(arpackageJSON)
+                    let sortedData = this.sort(arpackageJSON)
                     streamJSON['AUTOSAR']['AR-PACKAGES']['AR-PACKAGE'].push(arpackageJSON['AUTOSAR']['AR-PACKAGES']['AR-PACKAGE']);
-                    let tempData = { 'asd':arxml.type,'filename': arxml.name, 'data': streamJSON };
+                    let tempData = { 'asd':arxml.type,'filename': arxml.name, 'data': sortedData };
                     this.addArxmlFile({type:"select",data:tempData})
+                    console.log(tempData)
                     this.$vToastify.success("File Imported Successfully");
                 }
                 reader.readAsText(arxml)
@@ -89,6 +93,27 @@ export default {
         },
         clickUpload : function () {
             this.$refs.file.click()
+        },
+        sort(obj){
+            function sorting(objec){
+                let tempSorted={};
+                for (const key in objec) {
+                    let node_value = objec[key];
+                    if (Array.isArray(node_value)) {
+                        let tempArray = []
+                        for (let i = 0; i < node_value.length; i++) {
+                            tempArray.push(sorting(node_value[i]));
+                        }
+                        tempSorted[key] = sortJsonArray(tempArray, 'SHORT-NAME')
+                    } else if ('string' !== typeof(node_value) && 'number' !== typeof(node_value) && 'boolean' !== typeof(node_value)){    
+                        tempSorted[key] = sorting(node_value)
+                    } else {
+                        tempSorted[key] = node_value    
+                    }
+                }
+                return tempSorted;
+            }
+            return sorting(obj)
         }
     }
 }

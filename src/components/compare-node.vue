@@ -25,57 +25,64 @@ export default {
     methods: {
         ...mapActions(["addCompared"]),
     },
-    created: async function () {        
+    created: async function () {
 
         const compareNodes = async ({node1,node2}) => {
             let i = 0;
             let newNode1 = node1, newNode2 = node2;
-            while (i < newNode1.length){
+            for (const i in newNode1) {
                 if (Array.isArray(newNode1[i]) || Array.isArray(newNode2[i])){
-                    i++;
+                    const tempRes = await compareNodes({ node1: newNode1[i], node2: newNode2[i] });
+                    newNode1[i] = tempRes.newNode1;
+                    newNode2[i] = tempRes.newNode2;
+                    continue;
+                } else if('string' === typeof(newNode1[i]) || 'number' === typeof(newNode1[i]) || 'boolean' === typeof(newNode1[i])){
                     continue;
                 }
                 if(i>=node2.length){
-                    newNode2.push({ "xpath": "", "key": [], "change": true, "selected": false });
+                    newNode2.push({ "change": true });
                 }
-                if (newNode1[i].tag == newNode2[i].tag && newNode1[i].text != newNode2[i].text){
-                    newNode1[i].dif = true;
-                    newNode2[i].dif = true;
-                } else if (newNode1[i].tag == newNode2[i].tag && newNode1[i].shortName == newNode2[i].shortName){
-                    if (newNode1[i].key.length > 0 || newNode2[i].key.length > 0) {
-                        const tempRes = await compareNodes({ node1: newNode1[i].key, node2: newNode2[i].key });
-                        newNode1[i].key = tempRes.newNode1;
-                        newNode2[i].key = tempRes.newNode2;
-                        let j = 0
-                        while (j < newNode1[i].key.length) {
-                            if (newNode1[i].key[j].change || newNode1[i].key[j].hasChanges || newNode1[i].key[j].dif) {
-                                newNode1[i].hasChanges = true;
-                            }
-                            j++;
+                if ((newNode1[i] && newNode2[i]) && newNode1[i]['SHORT-NAME'] == newNode2[i]['SHORT-NAME']){
+                    if (newNode1[i] || newNode2[i]) {
+                        const tempRes = await compareNodes({ node1: newNode1[i], node2: newNode2[i] });
+                        newNode1[i] = tempRes.newNode1;
+                        newNode2[i] = tempRes.newNode2;
+                        
+                        if (newNode1[i].change || newNode1[i].hasChanges || newNode1[i].dif) {
+                            console.log(newNode1)
+                            newNode1.hasChanges = true;
                         }
-                        j = 0
-                        while (j < newNode2[i].key.length) {
-                            if (newNode2[i].key[j].change || newNode2[i].key[j].hasChanges || newNode2[i].key[j].dif) {
-                                newNode2[i].hasChanges = true;
-                            }
-                            j++;
+                    
+                        if (newNode2[i].change || newNode2[i].hasChanges || newNode2[i].dif) {
+                            newNode2[i].hasChanges = true;
                         }
+                        
+                        
                     }
-                } else if (newNode1[i].tag < newNode2[i].tag || newNode1[i].shortName < newNode2[i].shortName){
-                    newNode2.splice(i, 0, { "xpath": "", "key": [], "change": true, "selected": false });
-                } else if (newNode1[i].tag > newNode2[i].tag || newNode1[i].shortName > newNode2[i].shortName){
-                    newNode1.splice(i, 0, { "xpath": "", "key": [], "change": true, "selected": false });
+                } else if ((newNode1[i] && newNode2[i]) && newNode1[i]['SHORT-NAME'] < newNode2[i]['SHORT-NAME']){
+                    if(Array.isArray(newNode2)){
+                        newNode2.splice(i, 0, { "change": true});
+                    }else {
+                        newNode2[i].change = true
+                    }
+                } else if ((newNode1[i] && newNode2[i]) && newNode1[i]['SHORT-NAME'] > newNode2[i]['SHORT-NAME']){
+                    
+                    if(Array.isArray(newNode1)){
+                        newNode1.splice(i, 0, { "change": true });
+                    }else {
+                        newNode1[i].change = true
+                    }
                 }
-                i++;
             }
             const diff = newNode2.length - newNode1.length;
             for(let i = 0;i<diff;i++){
-                newNode1.push({ "xpath": "", "key": [], "change": true, "selected": false });
+                newNode1.push({ "change": true });
             }
 
             return { newNode1, newNode2 };
         }
         const result = await compareNodes({node1:this.node1,node2:this.node2});
+        console.log(result)
         this.addCompared({data:result});
         // this.comNode2 = result.newNode2;
     }

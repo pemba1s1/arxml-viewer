@@ -27,9 +27,9 @@
         <div v-else style="width: 100%;">
             <div style="width: 100%;" v-for="(file,index) in compareFile1" :key="index">
                 <CompareNode 
-                    :node1="compareFile1[index].data" 
+                    :node1="compareFile1[index].data['AUTOSAR']" 
                     :ref="'AUTOSAR'" 
-                    :node2="compareFile2[index].data"
+                    :node2="compareFile2[index].data['AUTOSAR']"
                     />
             </div>
         </div>
@@ -95,59 +95,9 @@ export default {
                     };
                     let arpackageJSON = parser.parse(e.target.result, parserOptions);
                     streamJSON['AUTOSAR']['AR-PACKAGES'] = arpackageJSON['AUTOSAR']['AR-PACKAGES'];
-                    const convertToJson = async (node) => {
-                        let comNode = []
-                        let att = [];
-                        if ('string' !== typeof (node)) {
-                            let shortname = '';
-                            let xpath;
-                            let text = '';
-                            
-                            for (const key in node) {
-                                let node_value = node[key];
-                                
-                                if (true === Array.isArray(node_value)) {
-                                    for (let i = 0; i < node_value.length; i++) {
-                                        
-                                        // get shortname of node
-                                        shortname = this.$func.getShortNameFromJsonObject(node_value[i]);
-                                        
-                                        // create xpath for child node
-                                        xpath = `${key}[${i}]`;
-                                        comNode.push({ "tag": key, "shortName": shortname, "xpath": xpath, selected: false, key: await convertToJson(node_value[i]) });
-                                    }
-                                }
-                                else {
-                                    
-                                        // get attributes of node
-                                        if (key.startsWith('@_')) {
-                                            att.push([key.substring(2), node_value])
-                                            continue;
-                                        }
-                                        
-                                        // no need to display shortname seperately
-                                        if ('SHORT-NAME' === key)
-                                        continue;
-
-                                        if (key.startsWith('#text'))
-                                        continue;
-                                        
-                                        shortname = this.$func.getShortNameFromJsonObject(node_value);
-                                        text = this.$func.getText(node_value)
-                                        // create xpath for child node
-                                        xpath = `${key}`;
-                                        
-                                        
-                                    comNode.push({ "tag": key, "text": text, "shortName": shortname, "xpath": xpath, selected: false, att: att, key: await convertToJson(node_value) });
-                                        
-                                    }
-                                    let sorted = sortJsonArray(comNode, 'shortName')
-                                    comNode = sorted;
-                                }
-                            }
-                            return comNode
-                        };
-                    let d = await convertToJson(streamJSON)
+                    
+                    let d = this.sort(arpackageJSON)
+                    console.log(d)
                     let tempData = { 'asd': arxml.type, 'filename': arxml.name, 'data': d };
                     this.addArxmlFile({data: tempData,type: type})
                     this.$vToastify.success("File Imported Successfully");
@@ -162,6 +112,27 @@ export default {
             if (type == 'compare2') this.$refs.file2.click()
             
         },
+        sort(obj){
+            function sorting(objec){
+                let tempSorted={};
+                for (const key in objec) {
+                    let node_value = objec[key];
+                    if (Array.isArray(node_value)) {
+                        let tempArray = []
+                        for (let i = 0; i < node_value.length; i++) {
+                            tempArray.push(sorting(node_value[i]));
+                        }
+                        tempSorted[key] = sortJsonArray(tempArray, 'SHORT-NAME')
+                    } else if ('string' !== typeof(node_value) && 'number' !== typeof(node_value) && 'boolean' !== typeof(node_value)){    
+                        tempSorted[key] = sorting(node_value)           
+                    } else {
+                        tempSorted[key] = node_value    
+                    }
+                }
+                return tempSorted;
+            }
+            return sorting(obj)
+        }
     }
 }
 </script>

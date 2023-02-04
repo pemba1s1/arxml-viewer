@@ -1,6 +1,6 @@
 <template>
     <li class="atomic-element">
-        <table>
+        <table v-if="!Array.isArray(node)">
             <tr>
                 <th>
                     <input 
@@ -23,17 +23,13 @@
                     </div>
                 </th>
                 <div @click="changeStateSelected" style="cursor:pointer">
-                    <th v-if="nodeText || !nodeShortName">{{ nodeTag}}</th>
-                    <th 
-                        v-else
-                        tabindex="0"
-                        ref="shortname"
-                    >{{ nodeShortName }}</th>
-                    <th v-if="nodeText" class="atomic-shortname" tabindex="0" ref="shortname">{{ nodeText}}</th>
+                    <th>{{ title }}</th>
+                    <th v-if="nodeText" class="atomic-shortname" tabindex="0" ref="shortname">{{ nodeText  }}</th>
+                    <th v-if="!isNotPrimitive(node)" class="atomic-shortname" tabindex="0" ref="shortname">{{ node }}</th>
                 </div>
             </tr>
         </table>
-        <ul style="padding-left:25px;">
+        <ul :style="`padding-left: ${ !Array.isArray(node) ? '25px' : '0' };`">
             <li v-if="state.selected">
                 <table>
                     <tr v-for="(attr,index) in nodeAttributes" :key="index">
@@ -42,18 +38,17 @@
                     </tr>
                 </table>
             </li>
-            <template v-for="(child,index) in nodeChildren">
+            <template v-if="isNotPrimitive(node)" v-for="(child,index) in node">
                 <!-- {{child}} -->
+               
                 <keep-alive :key="index">
                     <ArxmlNode 
-                        v-if="state.selected"
+                        v-if="state.selected && !index.toString().startsWith('@_') && index!='SHORT-NAME' && !nodeText"
                         :fileindex="fileindex" 
-                        :node="child.node"
-                        :nodeShortName="child.shortName"
-                        :nodeTag="child.tag" 
-                        :ref="child.xpath"
-                        :nodeText="child.text"
-                        :length="nodeChildren.length"
+                        :node="child"
+                        :nodeTag="index"
+                        :length="child.length"
+                        :autoopen="Array.isArray(node) ? false : true"
                     ></ArxmlNode>  
                     
                 </keep-alive>
@@ -70,7 +65,7 @@ import sortJsonArray from 'sort-json-array'
 
 export default {
     name: "ArxmlNode",
-    props: ['fileindex', 'node', 'nodeTag', 'nodeShortName', 'nodeText','length'],
+    props: ['fileindex', 'node', 'nodeTag', 'idx', 'autoopen'],
     components:{
         DownIcon,
         RightIcon,
@@ -79,70 +74,33 @@ export default {
         return {
             nodeAttributes:[],
             nodeChildren : [],
+            title: this.node['SHORT-NAME'] ? this.node['SHORT-NAME'] : this.nodeTag,
+            nodeText: this.node['#text'] ? this.node['#text'] : null,
             state: { 
-                selected:  this.length === 1 ? true : false,
+                selected: this.autoopen,
             },
         };
     },
     computed: {
-        ...mapGetters(["allArxmlFiles"])
+        ...mapGetters(["allArxmlFiles"]),
     },
     methods: {
         ...mapActions(["removeArxmlFile"]),
         changeStateSelected(){
             this.$refs.checkbox.click();
+        },
+        debug(f){
+            console.log(f)
+        },
+        isText(index){
+            return index.toString().startsWith('#text')
+        },
+        isNotPrimitive(child){
+            return 'string' !== typeof(child) && 'number' !== typeof(child) && 'boolean' !== typeof(child)
         }
     },
     created: async function(){
-        if('string' !== typeof(this.node))
-        {
-            let shortname = '';
-            let xpath;
-            let text='';
-            for(const key in this.node){
-                let node_value = this.node[key];
-                if(true === Array.isArray(node_value))
-                {
-                    for(let i=0; i<node_value.length; i++){
-            
-                        // get shortname of node
-                        shortname = this.$func.getShortNameFromJsonObject(node_value[i]);
-            
-                        // create xpath for child node
-                        xpath = `${key}[${i}]`;
-            
-                        this.nodeChildren.push(  {"tag":key, "shortName":shortname, "xpath": xpath, "node":node_value[i]} );            
-                    }
-                }
-                else
-                {
-                
-                    // get attributes of node
-                    if(key.startsWith('@_')){
-                        this.nodeAttributes.push( [key.substring(2) ,node_value] );
-                        continue;
-                    }
-                    
-                    // no need to display shortname seperately
-                    if('SHORT-NAME' === key)
-                        continue;
-
-                    if(key.startsWith('#text'))
-                        continue;
-
-                    shortname = this.$func.getShortNameFromJsonObject(node_value);
-                    text = this.$func.getText(node_value);
-                    // create xpath for child node
-                    xpath = `${key}`;
         
-                    this.nodeChildren.push({ "tag": key, "text": text, "shortName":shortname, "xpath": xpath, "node": node_value});        
-
-                }
-
-                let sorted = sortJsonArray(this.nodeChildren, 'shortName')
-                this.nodeChildren = sorted;      
-            } 
-        }
     }
 
 }
